@@ -1,0 +1,48 @@
+# ===== 环境变量与密钥（切勿上传，防止泄露）=====
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# ===== Python =====
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== 数据库（SQLite 会话记忆，可能位于 db/ 或 app/db/）=====
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.iml
+
+# ===== 前端 =====
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ===== 操作系统 =====
+.DS_Store
+Thumbs.db
+
+# ===== 日志 =====
+*.log
+
+# ===== 无关的独立子项目 / 本地文件（仅保留本地，不上传）=====
+marry-ai/
+mail-friend/
+图片/
+ceshi.py
