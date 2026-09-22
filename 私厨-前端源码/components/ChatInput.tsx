@@ -40,7 +40,7 @@ export function ChatInput({onSend, disabled}: ChatInputProps) {
     };
 
     return (
-        <div className="border-t border-gray-200/50 bg-white/80 p-4">
+        <div className="p-3">
             {file && (
                 <div className="mb-3 flex items-center gap-2">
                     <div className="relative">

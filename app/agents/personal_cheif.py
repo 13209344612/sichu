@@ -79,12 +79,53 @@ async def search_recipes(prompt: str, image: str, thread_id: str):
     except Exception as e:
         logger.error(f"\n[错误]: {str(e)}")
         yield "信息检索失败，试试看手动输入食物列表？"
-
 # 清空会话
 def clear_messages(thread_id: str):
     """清空会话"""
     logger.info(f"清空历史消息，thread_id: {thread_id}")
     checkpointer.delete_thread(thread_id)
+
+# 查询会话列表
+def list_threads(limit: int = 50) -> list[dict[str, str]]:
+    """获取会话列表（会话ID、标题、更新时间），按更新时间倒序"""
+    logger.info("获取会话列表")
+
+    # 先查出所有会话ID，再逐个取最新 checkpoint 提取标题
+    with checkpointer.cursor(transaction=False) as cur:
+        cur.execute("SELECT DISTINCT thread_id FROM checkpoints")
+        thread_ids = [row[0] for row in cur.fetchall()]
+
+    threads = []
+    for thread_id in thread_ids:
+        checkpoint_tuple = checkpointer.get_tuple({"configurable": {"thread_id": thread_id}})
+        if not checkpoint_tuple:
+            continue
+
+        # 取第一条用户消息作为会话标题
+        channel_values = checkpoint_tuple.checkpoint.get("channel_values") or {}
+        title = ""
+        for msg in channel_values.get("messages", []):
+            if not isinstance(msg, HumanMessage) or not msg.content:
+                continue
+            if isinstance(msg.content, str):
+                title = msg.content
+            else:
+                # 多模态消息：拼接文本部分，纯图片时给默认标题
+                title = "".join(
+                    part.get("text", "") for part in msg.content if isinstance(part, dict)
+                ) or "上传了一张食材图片"
+            break
+        if not title:
+            continue
+
+        threads.append({
+            "thread_id": thread_id,
+            "title": title.strip().replace("\n", " ")[:30],
+            "updated_at": checkpoint_tuple.checkpoint.get("ts", ""),
+        })
+
+    threads.sort(key=lambda t: t["updated_at"], reverse=True)
+    return threads[:limit]
 
 # 查询会话历史
 def get_messages(thread_id: str) -> list[dict[str, str]]:

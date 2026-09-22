@@ -1,7 +1,14 @@
 /**
  * API 调用封装
  */
-const API_BASE = "http://localhost:8001";
+import {SessionInfo} from "@/types/chat";
+// 运行时动态确定后端地址：
+// - 经后端同域访问（ngrok / 自定义域名 / localhost:8001）时，直接用当前域名，保证他人也能访问
+// - Next 开发服务器（端口 3000）下，回退到本地后端 8001
+const API_BASE =
+    typeof window !== "undefined" && window.location.port !== "3000"
+        ? window.location.origin
+        : "http://localhost:8001";
 
 /**
  * 获取 OSS 预签名上传 URL
@@ -97,6 +104,18 @@ export async function streamChat(
     } catch (error) {
         onError?.(error as Error);
     }
+}
+
+/**
+ * 获取会话列表
+ */
+export async function listThreads(): Promise<SessionInfo[]> {
+    const response = await fetch(`${API_BASE}/api/v1/chat/threads`);
+    if (!response.ok) {
+        throw new Error("获取会话列表失败");
+    }
+    const data = await response.json();
+    return data.threads;
 }
 
 /**

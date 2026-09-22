@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.models.schemas import ChatRequest
 from fastapi.responses import StreamingResponse
-from app.agents.personal_cheif import search_recipes, get_messages, clear_messages
+from app.agents.personal_cheif import search_recipes, get_messages, clear_messages, list_threads
 
 
 router = APIRouter()
@@ -14,6 +14,12 @@ async def chat_endpoint(request: ChatRequest):
         search_recipes(request.message, request.image_url, request.thread_id),
         media_type="text/event-stream"
     )
+
+
+@router.get("/chat/threads")
+async def get_chat_threads(limit: int = 50):
+    """获取会话列表"""
+    return {"threads": list_threads(limit)}
 
 
 @router.get("/chat/messages")

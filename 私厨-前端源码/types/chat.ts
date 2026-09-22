@@ -30,3 +30,10 @@ export interface Recipe {
   seasonings?: string[];
   cooking_time?: string;
 }
+
+// 会话摘要信息（侧边栏历史会话列表）
+export interface SessionInfo {
+  thread_id: string;
+  title: string;
+  updated_at: string;
+}

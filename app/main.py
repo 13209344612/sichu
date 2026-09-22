@@ -27,11 +27,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2.挂载路由
+# 2.HTML 禁止缓存中间件
+# 前端为静态导出，index.html 若被浏览器缓存，会导致用户拿到旧版 JS（如旧的 localhost 后端地址）。
+# 这里强制 HTML 每次重新校验；_next/static 下的带哈希资源不受影响，仍可长期缓存。
+@app.middleware("http")
+async def no_cache_html(request, call_next):
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("text/html"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+# 3.挂载路由
 app.include_router(chat.router, prefix="/api/v1", tags=["对话"])
 app.include_router(oss.router, prefix="/api/v1", tags=["申请上传签名url"])
 
-# 3.挂载前端资源
+# 4.挂载前端资源
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(static_dir):
     app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
